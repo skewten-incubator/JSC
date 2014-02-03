@@ -1,0 +1,32 @@
+name: jsc
+main: net.sq10.JSC.JSCPlugin
+version: 1.1.1-DEV02022014-1
+description: Write plugins in Javascript!
+load: POSTWORLD
+author: Strat(egetical)
+website: https://github.com/Strat-/JSC/
+database: false
+prefix: JSC
+commands:
+  js:
+    description: Evaluate Javascript.
+    usage: /<command> js_code
+    permission: jsc.evaluate
+    permission-message: You are not allowed to evaluate Javascript.
+  jsp:
+    description: Run a registered Javascript plugin command.
+    usage: /<command> plugin_command arguments
+    permission: jsc.proxy
+    permission-message: You are not allowed to call JS commands.
+permissions:
+  jsc.*:
+    description: Gives access to all JSC commands.
+    children:
+      jsc.evaluate: true
+      jsc.proxy: true
+  jsc.evaluate:
+    description: Allows you to evaluate Javascript code.
+    default: op
+  jsc.proxy:
+    description: Allows you to run registered Javascript plugin commands.
+    default: true
