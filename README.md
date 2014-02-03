@@ -1,7 +1,7 @@
 JSC
 ==================
 
-A fork of Walter Higgins's [ScriptCraft](https://github.com/walterhiggins/ScriptCraft), redone by me.
+An enhanced version of Walter Higgins's [ScriptCraft](https://github.com/walterhiggins/ScriptCraft), redone by me.
 
 ## What is it?
 
