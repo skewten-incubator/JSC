@@ -5,14 +5,16 @@
 //jsc.js
 //Main file for the JSC plugin.
 
-var global = this;
-var __self = {};
-var __onEnable = function(evaluator, plugin, root){
-	var build = 11;
+var global 	= this,
+	__self 	= {},
+	build	= 15;
+
+function __onEnable(evaluator, plugin, root){
+	var settingsVersion = 1;
 	
 	if (global.__pluginEnabled){
 		logger.error("Something tried to enable already-enabled JSC!");
-		return null;
+		return;
 	}
 	
 	/////////////////////////////////////////////////////////////////////
@@ -63,152 +65,187 @@ var __onEnable = function(evaluator, plugin, root){
 			}(formattingCodes[method]);
 		}
 	})();
+
 	///////////////////////////////////////////////////
 	//stringtrim
 	//Adds the String.trim() prototype.
-	if (!String.prototype.trim) {
-		String.prototype.trim = function(){
-			return this.replace(/^\s+|\s+$/gm, '');
-		};
-	}
+	String.prototype.trim = function(){
+		return this.replace(/^\s+|\s+$/gm, '');
+	};
+
 	//////////////////////////////////////////////////////////////////////////////
 	//require_tiny
 	//A minimized form of require.js, used for quick module loading for jsc.js
 	function require_tiny(module){
-		var obj = new java.io.File(root+"/lib/"+module+".js");
-		var reader = new java.io.BufferedReader(new java.io.FileReader(obj));
-		var code = "";
-		var line;
+		var fileobj = new java.io.File(root+"/lib/"+module+".js"),
+			reader 	= new java.io.BufferedReader(new java.io.FileReader(fileobj)),
+			code 	= "",
+			line;
+		
 		while ((line = reader.readLine()) !== null){
 			code += line+"\n";
 		}
-		var head = "(function(exports, _filename, _dirname){";
-		var tail = ";return exports;})";
+
+		var head = "(function(exports, _filename, _dirname){",
+			tail = ";return exports;})";
+		
 		code = head+code+tail;
 		try{
 			var compiled = evaluator.eval(code);
 		}
 		catch(e){
-			logger && logger.error("Could not compile the "+obj.getName()+" module!");
+			logger && logger.error("Could not compile the "+fileobj.getName()+" module!");
 			logger.debug(e);
+			return;
 		}
 		try{
 			var exports = compiled.call(
 				compiled,
 				{},
-				obj.getName(),
-				obj.getParentFile().getCanonicalPath()
+				fileobj.getName(),
+				fileobj.getParentFile().getCanonicalPath()
 			);
 		}
 		catch(e){
-			logger && logger.error("Could not execute the "+obj.getName()+" module!");
+			logger && logger.error("Could not execute the "+fileobj.getName()+" module!");
 			logger.debug(e.stack);
+			return;
 		}
 		return exports;
 	}
 
+	////////////////////////////
 	//Set up global environment
+	//root path (usually {bukkitdir}/plugins/jsc/)
 	global._root = root.getParentFile().getCanonicalPath();
+	//java Plugin object
 	global._plugin = plugin;
+	//java ScriptEngine object
 	global._evaluator = evaluator;
-	global._server = plugin.getServer();
+	//java Server object
+	global.server = plugin.getServer();
+	//if the plugin is enabled or not (in this case, yes)
 	global.__pluginEnabled = true;
-	root = root.getParentFile().getCanonicalPath();
-	__self.playerVariables = {};
+	//replace the root variable with the path
+	root = _root;
 
-	__self.logger = new require_tiny("logger")({
+	//Create the logger object
+	__self.logger = new (require_tiny("logger"))({
 		prefix: "JSC"
 	}).module("main");
 	var logger = __self.logger;
 	logger.log("Loading plugin.");
 
-	global.require = new require_tiny("require")(
+	//Load up require()
+	global.require = new (require_tiny("require"))(
 		evaluator,
 		root,
 		[
 			root+"/lib/",
-			root+"/modules/"	
+			root+"/modules/"
 		]
 	);
 
-	__self.announcer = new require("announcer")({
+	//Create the announcer object
+	__self.announcer = new (require("announcer"))({
 		tell_prefix: "JSC> ".gray(),
 		broadcast_prefix: "["+"JSC".gold()+"]> "
 	});
 	var announcer = __self.announer;
 
-	global._command = require("command");
-	global.command = _command.register;
+	//load the command module
+	global.command = require("command");
+	//load the events module
 	global.events = require("events");
+	//load the plugin module
 	global.plugin = require("plugin");
+	
+	///////////////////////////////
+	//(set/clear)(Timeout/Interval)
 	global.setTimeout = function(callback, delay){
 		//Bukkit uses ticks.
 		//1 tick = 50ms
-		return _server.getScheduler().runTaskLater(_plugin, callback, delay/50);
+		return server.getScheduler().runTaskLater(_plugin, callback, delay/50);
 	};
 	global.clearTimeout = function(task){
 		task.cancel();
 	};
 	global.setInterval = function(callback, delay){
 		var interval = delay/50;
-		return _server.getScheduler().runTaskTimer(__plugin, callback, interval, interval);
+		return server.getScheduler().runTaskTimer(_plugin, callback, interval, interval);
 	};
 	global.clearInterval = function(task){
 		task.cancel();
 	};
 	
+	///////////////////////////////////////////////
 	//Run all global modules' pluginEnable handlers
 	global.plugin._load();
 
-	//Register plugin commands and events
+	///////////////////////
+	//Update JSC's savedata
+	function updateInfo(s){
+		s.settingsVersion = settingsVersion;
+	}
 	if (!global.plugin.exists("JSC")){
-		logger.warn("Plugin JSC doesn't exist, making plugin.");
+		logger.warn("JSC savedata doesn't exist, creating.");
 		var savedata = global.plugin.add("JSC");
 		updateInfo(savedata);
 	}
 	else{
 		var savedata = global.plugin.get("JSC");
-		if (!savedata.build || savedata.build < build){
+		if (!savedata.settingsVersion || savedata.settingsVersion < settingsVersion){
 			logger.log("Updating plugin's savedata.");
 			updateInfo(savedata);
 		}
 	}
 
-	function updateInfo(s){
-		s.build = build;
-	}
-
-	command("update", function(a,p){
+	/////////////////////////////////////
+	//Register plugin commands and events
+	command.register("update", function(a,p){
 		if (!p.isOp()){
 			__self.announcer.tell("You're not allowed to run the update command.", p);
-			return false;
+			return;
 		}
 		if (a.length < 2){
 			__self.announcer.tell("Usage: /jsp update core", p);
 		}
 		else{
-			if (global.__confirmUpdate){
-				if (a[1] == "core"){
-					plugin.checkFiles(true);
-				}
-				global.__confirmUpdate = false;
-				__self.announcer.tell("Done. To load the new files, run the 'reload' command.".green(), p);
-			}
-			else{
+			if (!global.__confirmUpdate){
 				__self.announcer.tell("WARNING: THIS WILL OVERWRITE ALL CUSTOM CORE MODULES.".red(), p);
-				__self.announcer.tell("TO CONTINUE, RUN THE COMMAND AGAIN.".red(), p);
+				__self.announcer.tell("TO CONTINUE, RUN THE COMMAND AGAIN. OTHERWISE, DO /jsp cancel".red(), p);
 				global.__confirmUpdate = true;
 			}
+			else{
+				if (a[1] == "core"){
+					plugin.checkFiles(true);
+					__self.announcer.tell("Done. To load the new files, run the 'reload' command.".green(), p);
+				}
+				global.__confirmUpdate = false;
+			}
 		}
 	});
-	command("jsc", function(a,p){
-		__self.announcer.tell("This is a reserved command.", p);
+	command.register("cancel", function(a,p){
+		if (!.isOp()){
+			__self.announcer.tell("You're not allowed to run the cancel command.", p);
+			return;
+		}
+		global.__confirmUpdate = false;
+		__self.announcer.tell("Cancelled JSC updating.".green(), p);
 	});
+	command.register("jsc", function(a,p){
+		__tellVersion(p);
+	});
+	
+	//////////////////////////
+	//Handle plugin unloading.
 	events.on("server.PluginDisableEvent", function(l,e){
-		if (e.getPlugin() == _plugin){
-			logger.log("Unloading plugin.");
-			global.plugin._unload();
+		if (e.getPlugin() != _plugin){
+			logger.error("Disable: e.getPlugin() isn't the same as _plugin!");
+			return;
 		}
+		logger.log("Unloading plugin.");
+		global.plugin._unload();
 	}, "LOWEST");
 	
 	//Load the command map so we can register global commands.
@@ -218,18 +255,19 @@ var __onEnable = function(evaluator, plugin, root){
 	
 	//Load all the plugins.
 	(function(){
-		var File = java.io.File;
-		var f = new File(global._root+"/plugins/");
-		function lp(obj){
-			var reader = new java.io.BufferedReader(new java.io.FileReader(obj));
-			var code = "";
-			var line;
+		var File 		= java.io.File,
+			directory 	= new File(global._root+"/plugins/");
+		function loadPlugin(obj){
+			var reader 	= new java.io.BufferedReader(new java.io.FileReader(obj)),
+				code 	= "",
+				line 	= "",
+				head 	= "(function(require, _filename, _dirname){",
+				tail	= "})";
 			while ((line = reader.readLine()) !== null){
 				code += line+"\n";
 			}
-			var head = "(function(require, _filename, _dirname){";
-			var tail = "})";
 			code = head+code+tail;
+			//Try to evaluate the code.
 			try{
 				var compiled = evaluator.eval(code);
 			}
@@ -237,79 +275,75 @@ var __onEnable = function(evaluator, plugin, root){
 				logger.error("Could not compile the "+obj.getName()+" module!");
 				logger.debug(e);
 			}
+			//If we could compile, then we run it asynchronously.
 			try{
-				var exports = compiled.call(
+				setTimeout(function(){compiled.call(
 					compiled,
 					global.require,
 					obj.getName(),
 					obj.getParentFile().getCanonicalPath()
-				);
+				)});
 			}
 			catch(e){
 				logger.error("Could not execute the "+obj.getName()+" module!");
 				logger.debug(e);
 			}
 		}
-		function l(f){
-			var list = f.list();
+		function loadList(directory){
+			var list = directory.list();
 			if (!list){
-				return false;
+				return;
 			}
 			for (var i=0;i<list.length;i++){
-				var nf = new File(f, list[i]);
-				var nfn = String(nf.getName());
-				if (nf.isFile() && nfn.substr(nfn.length-3) == ".js"){
-					lp(nf);
+				var newFile 	= new File(directory, list[i]),
+					newFileName = String(newFile.getName());
+				if (newFile.isFile()&&
+					newFileName.substr(newFileName.length-3) == ".js"
+				){
+					//Run asynchronously.
+					setTimeout(function(){loadPlugin(newFile)});
 				}
-				else if (nf.isDirectory()){
-					l(nf);
+				else if (newFile.isDirectory()){
+					//Run asynchronously.
+					setTimeout(function(){loadList(newFile)});
 				}
 				else{
 					continue;
 				}
 			}
 		}
-		l(f);
+		loadList(directory);
 	})();
 };
 
+global.__tellVersion = function(sender){
+	__self.announcer.tell("JSC "+_plugin.getDescription().getVersion()+". Made by Ivan K (Strat)", sender);
+}
+
 global.__onCommand = function(sender,cmd,label,args){
 	if (label == "jsp"){
-		return _command.handleCommand(sender, cmd, label, args);	
+		return command.handleCommand(sender, cmd, label, args);	
 	}
 	else if (label == "js"){
-		if (!__self.playerVariables[sender.getName()]){
-			__self.playerVariables[sender.getName()] = {};
+		global.self = sender;
+		try{ 
+			returnVar = __engine.eval(args.join(" "));
+			if (typeof jsResult !== 'undefined'){ 
+				if (returnVar === null){ 
+					return 'null';
+				}
+				else{ 
+					return returnVar.toString();
+				}
+			} 
 		}
-		var code = args.join(" ");
-		(function(){
-			//Add a return statement.
-			var splitcode = code.split(";");
-			if (splitcode[splitcode.length-1].trim() == ""){
-				splitcode.pop();
-			}
-			var lastSnippet = splitcode[splitcode.length-1].trim();
-			if (lastSnippet.indexOf("return ") != 0){
-				lastSnippet = "return "+lastSnippet;
-			}
-			//Set it up so return returns "v" and then the return value.
-			var lastSnippetSplit = lastSnippet.split(" ");
-			var ls = lastSnippetSplit.shift();
-			var lsa = lastSnippetSplit.join(" ");
-			var lsa = "[v, "+lsa+"]";
-			lastSnippet = ls+" "+lsa;
-			//Connect everything together.
-			splitcode[splitcode.length-1] = lastSnippet;
-			code = splitcode.join(";");
-		})();
-		var returnVars = _evaluator.eval("function(v,self){"+code+"}")
-			(__self.playerVariables[sender.getName()],sender);
-		__self.playerVariables[sender.getName()] = returnVars[0];
-		__self.announcer.tell(returnVars[1],sender);
-		return true;
+		catch(e){
+			announcer.tell("Could not evaluate the JS!", sender);
+			announcer.tell("Error: "+e);
+		}
 	}
 	else if (label == "jsc"){
-		__self.announcer.tell("JSC "+_plugin.getDescription().getVersion()+". Made by Ivan K (Strat)", sender);
+		__tellVersion(sender);
 	}
 	else{
 		return _command.ghandleCommand(sender, cmd, label, args);
