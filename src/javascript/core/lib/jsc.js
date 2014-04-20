@@ -257,11 +257,9 @@ function __onEnable(evaluator, plugin, root){
 		logger.log("Unloading plugin.");
 		global.plugin._unload();
 	}, "LOWEST");
-	
-	//Load the command map so we can register global commands.
-	_plugin.loadCommandMap(server["class"].getDeclaredField("commandMap"));
+
 	//Register global command JSC as a test.
-	_plugin.registerGlobalCommand("jsc");
+	_plugin.registerGlobalCommand("jsc", "/jsc", "Displays JSC info.");
 	//Load up tabcomplete.
 	global.__tabComplete = require("tabcomplete").handle;
 	//Load all the plugins.

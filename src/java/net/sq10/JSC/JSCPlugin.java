@@ -8,18 +8,15 @@ import javax.script.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.ArrayList;
-import java.lang.reflect.Field;
 import java.util.List;
 
-import org.bukkit.event.Listener; 
-import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.sq10.JSC.Metrics;
+import net.sq10.JSC.AbstractCommand;
 
 public class JSCPlugin extends JavaPlugin implements Listener{
 	private static final String JS_PLUGINS_DIR = "plugins/jsc";
@@ -28,9 +25,12 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 	private ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
 	private Invocable invocable = (Invocable) engine;
 	private File plugindir = new File(JS_PLUGINS_DIR);
+	private JavaPlugin pluginInstance;
 
 	@Override
 	public void onEnable(){
+		//Make pluginInstance this.
+		pluginInstance = this;
 		//Enable Metrics.
 		try{
 			Metrics metrics = new Metrics(this);
@@ -199,36 +199,30 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		}
 	}
 
-	//Functions for registering a global command via "reflections"
-	//https://forums.bukkit.org/threads/register-command-without-plugin-yml.112932/#post-1430463
-	private static CommandMap cmap;
-	public void loadCommandMap(final Field declaredField){
-		try{
-			declaredField.setAccessible(true);
-			cmap = (CommandMap)declaredField.get(Bukkit.getServer());
-		}
-		catch (Exception e){
-			e.printStackTrace();
-		}
+	public void registerGlobalCommand(String command, String usage, String description){
+		//Register the command.
+		AbstractCommand abscmd = new JSCGlobalCommand(command, usage, description);
+        abscmd.register();
 	}
-	public void registerGlobalCommand(String command){
-		CCommand cmd = new CCommand(command);
-		cmap.register("JSCCommand", cmd);
-		cmd.setExecutor(this);
-	}
-	public class CCommand extends Command{	
-		private CommandExecutor exe = null;
-		protected CCommand(String name){
-			super(name);
+
+	public class JSCGlobalCommand extends AbstractCommand{
+ 		//Register the command.
+	    public JSCGlobalCommand(String command, String usage, String description){
+	        super(command, usage, description);
+	    }
+
+	    //Register tabComplete.
+        @Override
+		public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args){
+			//Pass the params to our plugin's tabComplete handler.
+			return pluginInstance.onTabComplete(sender, cmd, label, args);
 		}
-		public boolean execute(CommandSender sender, String commandLabel, String[] args){
-			if (exe != null){
-				exe.onCommand(sender, this, commandLabel,args);
-			}
-			return false;
-		}
-		public void setExecutor(CommandExecutor exe){
-			this.exe = exe;
-		}
+
+		//Override command execution.
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
+			//Pass the params to our plugin's command handler.
+			return pluginInstance.onCommand(sender, cmd, label, args);
+		};
 	}
 }

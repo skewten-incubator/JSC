@@ -137,8 +137,7 @@ function ghandleCommand(sender, cmd, label, args){
 		a.push(String(args[i]));
 	}
 	if (gregisteredCommands[label]){
-		gregisteredCommands[label](a, sender);
-		return true;
+		return gregisteredCommands[label](a, sender);
 	}
 	else{
 		__self.announcer.tell("Unknown command.", sender);

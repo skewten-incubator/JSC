@@ -30,7 +30,7 @@ if status == "NOFILE":
 else:
 	print("Building.");
 	try:
-		subprocess.Popen("java -jar build/lib/ecj.jar -1.7 -classpath build/lib/bukkit.jar java/net/sq10/JSC/JSCPlugin.java java/net/sq10/JSC/Metrics.java -d build/tmp").wait()
+		subprocess.Popen("java -jar build/lib/ecj.jar -1.7 -classpath build/lib/bukkit.jar java/net/sq10/JSC/JSCPlugin.java java/net/sq10/JSC/Metrics.java java/net/sq10/JSC/AbstractCommand.java -d build/tmp").wait()
 		print("Copying plugin.yml")
 		shutil.copyfile("java/plugin.yml", "build/tmp/plugin.yml")
 		print("Making jsc_core.zip")
