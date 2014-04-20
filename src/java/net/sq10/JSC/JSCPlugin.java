@@ -9,6 +9,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.ArrayList;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import org.bukkit.event.Listener; 
 import org.bukkit.Bukkit;
