@@ -137,7 +137,7 @@ var Require = function(evaluator, root, paths){
                     return load_module(result);
                 }
             }
-            logger.error("Could not locate module in the module paths.");
+            logger.error("Could not locate module "+path+" in the module paths.");
             throw new Error("File not found");
         }
     }

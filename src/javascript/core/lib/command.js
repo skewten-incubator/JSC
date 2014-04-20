@@ -76,18 +76,19 @@ var gregisterCommand = function(name, handler, tabHandler){
         handler: handler,
         tabHandler: tabHandler
     };
-    gregister && _plugin.registerGlobalCommand(name);
+    gregister && _plugin.registerGlobalCommand(name, "/"+name+" args", "JSC global command.");
     return gregisteredCommands[name];
 };
 
 function ghandleCommand(sender, cmd, label, args){
-    var a = [];
-    a.push(String(cmd.getName()));
+    var a       = [],
+        command = cmd.getName();
+    a.push(command);
     for (var i=0;i<args.length;i++){
         a.push(String(args[i]));
     }
-    if (gregisteredCommands[cmd]){
-        var returnVal = gregisteredCommands[cmd].handler(a, sender);
+    if (gregisteredCommands[command]){
+        var returnVal = gregisteredCommands[command].handler(a, sender);
         if (returnVal === false){
             return false;
         }

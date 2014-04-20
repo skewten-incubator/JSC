@@ -289,18 +289,21 @@ function __onEnable(evaluator, plugin, root){
                 logger.debug(e);
             }
             //If we could compile, then we run it asynchronously.
-            try{
-                setTimeout(function(){__JSCache[obj.getCanonicalPath()] = compiled.call(
-                    compiled,
-                    global.require,
-                    obj.getName(),
-                    obj.getParentFile().getCanonicalPath()
-                )});
-            }
-            catch(e){
-                logger.error("Could not execute the "+obj.getName()+" module!");
-                logger.debug(e);
-            }
+            setTimeout(function(){
+                try{
+                    logger.log("Loading plugin: "+obj.getName());
+                    __JSCache[obj.getCanonicalPath()] = compiled.call(
+                        compiled,
+                        global.require,
+                        obj.getName(),
+                        obj.getParentFile().getCanonicalPath()
+                    )
+                }
+                catch(e){
+                    logger.error("Could not execute the "+obj.getName()+" module!");
+                    logger.debug(e);    
+                }
+            });
         }
         function loadList(directory){
             var list = directory.list();
@@ -314,11 +317,13 @@ function __onEnable(evaluator, plugin, root){
                     newFileName.substr(newFileName.length-3) == ".js"
                 ){
                     //Run asynchronously.
-                    setTimeout(function(){loadPlugin(newFile)});
+                    (function(file){
+                        setTimeout(function(){loadPlugin(file)});
+                    })(newFile);
                 }
                 else if (newFile.isDirectory()){
                     //Run asynchronously.
-                    setTimeout(function(){loadList(newFile)});
+                    loadList(newFile);
                 }
                 else{
                     continue;
