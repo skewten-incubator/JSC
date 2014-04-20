@@ -144,14 +144,14 @@ function __onEnable(evaluator, plugin, root){
 	logger.log("Loading plugin.");
 
 	//Load up require()
-	global.require = new (require_tiny("require"))(
+	global.require = (new (require_tiny("require"))(
 		evaluator,
 		root,
 		[
 			root+"/lib/",
 			root+"/modules/"
 		]
-	);
+	)).require;
 
 	//Create the announcer object
 	__self.announcer = new (require("announcer"))({
@@ -168,15 +168,19 @@ function __onEnable(evaluator, plugin, root){
 	
 	///////////////////////////////
 	//(set/clear)(Timeout/Interval)
+	//Bukkit uses ticks.
+	//1 tick = 50ms
 	global.setTimeout = function(callback, delay){
-		//Bukkit uses ticks.
-		//1 tick = 50ms
+		//If there is no delay specified, assume 0.
+		delay = (delay)?delay:0;
 		return server.getScheduler().runTaskLater(_plugin, callback, delay/50);
 	};
 	global.clearTimeout = function(task){
 		task.cancel();
 	};
 	global.setInterval = function(callback, delay){
+		//If there is no delay specified, assume 0.
+		delay = (delay)?delay:0;
 		var interval = delay/50;
 		return server.getScheduler().runTaskTimer(_plugin, callback, interval, interval);
 	};
@@ -232,7 +236,7 @@ function __onEnable(evaluator, plugin, root){
 		}
 	});
 	command.register("cancel", function(a,p){
-		if (!.isOp()){
+		if (!p.isOp()){
 			__self.announcer.tell("You're not allowed to run the cancel command.", p);
 			return;
 		}
@@ -255,10 +259,11 @@ function __onEnable(evaluator, plugin, root){
 	}, "LOWEST");
 	
 	//Load the command map so we can register global commands.
-	_plugin.loadCommandMap(_server["class"].getDeclaredField("commandMap"));
+	_plugin.loadCommandMap(server["class"].getDeclaredField("commandMap"));
 	//Register global command JSC as a test.
 	_plugin.registerGlobalCommand("jsc");
-	
+	//Load up tabcomplete.
+	global.__tabComplete = require("tabcomplete").handle;
 	//Load all the plugins.
 	(function(){
 		var File 		= java.io.File,
@@ -333,20 +338,25 @@ global.__onCommand = function(sender,cmd,label,args){
 	else if (label == "js"){
 		global.self = sender;
 		try{ 
-			returnVar = __engine.eval(args.join(" "));
-			if (typeof jsResult !== 'undefined'){ 
+			returnVar = _evaluator.eval(args.join(" "));
+			if (returnVar !== 'undefined'){ 
 				if (returnVar === null){ 
-					return 'null';
+					__self.announcer.tell("null", sender);
 				}
 				else{ 
-					return returnVar.toString();
+					__self.announcer.tell(returnVar.toString(), sender);
 				}
-			} 
+			}
+			else{
+				__self.announcer.tell("undefined", sender);
+			}
 		}
 		catch(e){
-			announcer.tell("Could not evaluate the JS!", sender);
-			announcer.tell("Error: "+e);
+			__self.announcer.tell("Could not evaluate the JS!", sender);
+			__self.announcer.tell("Error: "+e, sender);
 		}
+		//Suppress the usage output.
+		return true;
 	}
 	else if (label == "jsc"){
 		__tellVersion(sender);
@@ -355,5 +365,3 @@ global.__onCommand = function(sender,cmd,label,args){
 		return command.ghandleCommand(sender, cmd, label, args);
 	}
 }
-
-global.__tabComplete = require("tabcomplete").handle;

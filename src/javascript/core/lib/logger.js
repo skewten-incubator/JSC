@@ -12,7 +12,7 @@ var Logger = function(object){
 	self.debugPrefix = object.debugPrefix || "[debug] ".aqua();
 	self.debugLevel = object.debugLevel || 0;
 	self.sendRaw = function(message){
-		_server.getConsoleSender().sendMessage(message);
+		server.getConsoleSender().sendMessage(message);
 	};
 	self.logRaw = function(message){
 		self.sendRaw(self.prefix+self.logPrefix+message);

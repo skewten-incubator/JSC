@@ -2,8 +2,8 @@
 ////////////////////////////////////////
 //events.js
 //Module for adding and removing events.
-var logger 			= __self.logger.module("events").
-	Event 			= org.bukkit.event.
+var logger 			= __self.logger.module("events"),
+	Event 			= org.bukkit.event,
 	EventPriority 	= org.bukkit.event.EventPriority;
 
 function on(eventName, handler, priority){

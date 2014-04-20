@@ -17,7 +17,7 @@ var Announcer = function(object){
 		self.tell_raw(self.tell_prefix+message, player);
 	};
 	self.broadcast_raw = function(message){
-		_server.broadcastMessage(message);
+		server.broadcastMessage(message);
 	}
 	self.broadcast = function(message){
 		self.broadcast_raw(self.broadcast_prefix+message);
