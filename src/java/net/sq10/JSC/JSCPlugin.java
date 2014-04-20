@@ -31,6 +31,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 
 	@Override
 	public void onEnable(){
+		//Enable Metrics.
 		try{
 			Metrics metrics = new Metrics(this);
 			metrics.start();
@@ -38,8 +39,14 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		catch (IOException e) {
 			getLogger().warning("Couldn't enable Metrics!");
 		}
+		
+		//Set up the directory.
 		initDir();
+		
+		//Check if all files are intact. False for "we're not updating".
 		checkFiles(false);
+
+		//Try to read the jsc.js file, and run the __onEnable function.
 		FileReader reader = null;
 		try{
 			reader = new FileReader(new File(JS_PLUGINS_DIR+"/lib/jsc.js"));
@@ -60,6 +67,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		}
 	}
 	
+	//Handle tab completions.
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args){
 		List<String> result = new ArrayList<String>();
 		try{
@@ -72,6 +80,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		return result;
 	}
 	
+	//Handle commands.
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		Object jsResult = null;
 		try{
@@ -97,7 +106,9 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 			}
 			plugindir.mkdirs();
 			checkFiles(false);
-			installExtraFiles();
+			
+			//Don't install the extra files. I'm going to do something different later.
+			//installExtraFiles();
 		}
 	}
 
