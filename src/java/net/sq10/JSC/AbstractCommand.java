@@ -46,7 +46,7 @@ import org.bukkit.permissions.Permission;
  * @author str_t
  */
 public abstract class AbstractCommand implements TabExecutor{
-    
+
     protected final String command;
     protected final String description;
     protected final List<String> alias;
@@ -54,62 +54,68 @@ public abstract class AbstractCommand implements TabExecutor{
     protected final String permMessage;
 
     protected static CommandMap cmap;
-    
-    public AbstractCommand(String command) {
+
+    public AbstractCommand(String command){
         this(command, null, null, null, null);
     }
-    
-    public AbstractCommand(String command, String usage) {
+
+    public AbstractCommand(String command, String usage){
         this(command, usage, null, null, null);
     }
-    
-    public AbstractCommand(String command, String usage, String description) {
+
+    public AbstractCommand(String command, String usage, String description){
         this(command, usage, description, null, null);
     }
-    
-    public AbstractCommand(String command, String usage, String description, String permissionMessage) {
+
+    public AbstractCommand(String command, String usage, String description, String permissionMessage){
         this(command, usage, description, permissionMessage, null);
     }
-    
-    public AbstractCommand(String command, String usage, String description, List<String> aliases) {
+
+    public AbstractCommand(String command, String usage, String description, List<String> aliases){
         this(command, usage, description, null, aliases);
     }
-    
-    public AbstractCommand(String command, String usage, String description, String permissionMessage, List<String> aliases) {
-        this.command = command.toLowerCase();
-        this.usage = usage;
-        this.description = description;
-        this.permMessage = permissionMessage;
-        this.alias = aliases;
+
+    public AbstractCommand(String command, String usage, String description, String permissionMessage, List<String> aliases){
+        this.command        = command.toLowerCase();
+        this.usage          = usage;
+        this.description    = description;
+        this.permMessage    = permissionMessage;
+        this.alias          = aliases;
     }
-    
-    public void register() {
+
+    public void register(){
         ReflectCommand cmd = new ReflectCommand(this.command);
-        if (this.alias != null) cmd.setAliases(this.alias);
-        if (this.description != null) cmd.setDescription(this.description);
-        if (this.usage != null) cmd.setUsage(this.usage);
-        if (this.permMessage != null) cmd.setPermissionMessage(this.permMessage);
+        if (this.alias != null)         cmd.setAliases(this.alias);
+        if (this.description != null)   cmd.setDescription(this.description);
+        if (this.usage != null)         cmd.setUsage(this.usage);
+        if (this.permMessage != null)   cmd.setPermissionMessage(this.permMessage);
         getCommandMap().register("", cmd);
         cmd.setExecutor(this);
     }
-    
-    final CommandMap getCommandMap() {
-        if (cmap == null) {
-            try {
+
+    final CommandMap getCommandMap(){
+        if (cmap == null){
+            try{
                 final Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
                 f.setAccessible(true);
                 cmap = (CommandMap) f.get(Bukkit.getServer());
                 return getCommandMap();
-            } catch (Exception e) { e.printStackTrace(); }
-        } else if (cmap != null) { return cmap; }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else if (cmap != null) {
+            return cmap;
+        }
         return getCommandMap();
     }
-    
-    private final class ReflectCommand extends Command {
+
+    private final class ReflectCommand extends Command{
         private TabExecutor exe = null;
-        protected ReflectCommand(String command) { super(command); }
-        public void setExecutor(TabExecutor exe) { this.exe = exe; }
-        public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+        protected ReflectCommand(String command){super(command);}
+        public void setExecutor(TabExecutor exe){this.exe = exe;}
+        public boolean execute(CommandSender sender, String commandLabel, String[] args){
             if (exe != null){
                 exe.onCommand(sender, this, commandLabel, args);
             }
@@ -122,15 +128,14 @@ public abstract class AbstractCommand implements TabExecutor{
             return null;
         }
     }
-    
-    public boolean isPlayer(CommandSender sender) { return (sender instanceof Player); }
-    public boolean isAuthorized(CommandSender sender, String permission) { return sender.hasPermission(permission); }
-    public boolean isAuthorized(Player player, String permission) { return player.hasPermission(permission); }
-    public boolean isAuthorized(CommandSender sender, Permission perm) { return sender.hasPermission(perm); }
-    public boolean isAuthorized(Player player, Permission perm) { return player.hasPermission(perm); }
-    
+
+    public boolean isPlayer(CommandSender sender){return (sender instanceof Player);}
+    public boolean isAuthorized(CommandSender sender, String permission){return sender.hasPermission(permission);}
+    public boolean isAuthorized(Player player, String permission){return player.hasPermission(permission);}
+    public boolean isAuthorized(CommandSender sender, Permission perm){return sender.hasPermission(perm);}
+    public boolean isAuthorized(Player player, Permission perm){return player.hasPermission(perm);}
+
     public abstract boolean onCommand(CommandSender sender, Command cmd, String label, String[] args);
-    
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args){
         return null;
     };
