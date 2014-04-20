@@ -71,7 +71,7 @@ function onPluginLoad(){
 	for (var i=0;i<files.length;i++){
 		try{
 			//Try to load the JSON.
-			var obj = jsonfile.load(files[i]);
+			var pluginobj = jsonfile.load(files[i]);
 			if (!pluginobj.name){
 				logger.error("JSON doesn't have a name! Skipping.");
 				continue;
@@ -83,7 +83,8 @@ function onPluginLoad(){
 			registeredPlugins[pluginobj.name] = pluginobj;
 		}
 		catch(e){
-			logger.error("Could not read a JSON file! Skipping.");
+			logger.error("Could not read JSON file '"+files[i].getName()+"'! Skipping.");
+			logger.error(e);
 			continue;
 		}
 	}

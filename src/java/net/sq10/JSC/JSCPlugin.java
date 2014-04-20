@@ -109,7 +109,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		ArrayList<String> ftu = new ArrayList<String>();
 		try{
 			if (doUpdate){
-				getLogger().warning("[CORE] !!Updating.");
+				getLogger().warning("[CORE] Updating.");
 				
 			}
 			while ((core_entry=core_zis.getNextEntry()) != null){
@@ -202,7 +202,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 	}
 	public void registerGlobalCommand(String command){
 		CCommand cmd = new CCommand(command);
-		cmap.register("jscplugin", cmd);
+		cmap.register("JSCCommand", cmd);
 		cmd.setExecutor(this);
 	}
 	public class CCommand extends Command{	
