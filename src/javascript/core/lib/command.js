@@ -62,8 +62,14 @@ function handleCommand(sender, cmd, label, args){
 		return false;
 	}
 	if (registeredCommands[a[0]]){
-		registeredCommands[a[0]](a, sender);
-		return true;
+		var returnVal = registeredCommands[a[0]](a, sender);
+		if (returnVal === false){
+			return false;
+		}
+		//Assume null and any non-false value success.
+		else{
+			return true;
+		}
 	}
 	else{
 		__self.announcer.tell("Unknown command.", sender);
@@ -137,7 +143,14 @@ function ghandleCommand(sender, cmd, label, args){
 		a.push(String(args[i]));
 	}
 	if (gregisteredCommands[label]){
-		return gregisteredCommands[label](a, sender);
+		var returnVal = gregisteredCommands[label](a, sender);
+		if (returnVal === false){
+			return false;
+		}
+		//Assume null and any non-false value success.
+		else{
+			return true;
+		}
 	}
 	else{
 		__self.announcer.tell("Unknown command.", sender);
