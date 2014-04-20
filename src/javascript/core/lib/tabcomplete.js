@@ -211,6 +211,9 @@ var onTabCompleteJS = function(result, sender, cmd, alias, args){
 function handleTabComplete(result, sender, cmd, alias, args){
     //Check the command that is being used.
     logger.log("Tab complete called, cmd: "+cmd.getName());
+    logger.log("sender: "+sender);
+    logger.log("alias: "+alias);
+    logger.log("args: "+args);
 }
 
 exports.handle = handleTabComplete;

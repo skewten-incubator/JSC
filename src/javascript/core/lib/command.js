@@ -138,12 +138,12 @@ var gregisterCommand = function(name, func){
 
 function ghandleCommand(sender, cmd, label, args){
 	var a = [];
-	a.push(String(label));
+	a.push(String(cmd));
 	for (var i=0;i<args.length;i++){
 		a.push(String(args[i]));
 	}
-	if (gregisteredCommands[label]){
-		var returnVal = gregisteredCommands[label](a, sender);
+	if (gregisteredCommands[cmd]){
+		var returnVal = gregisteredCommands[cmd](a, sender);
 		if (returnVal === false){
 			return false;
 		}

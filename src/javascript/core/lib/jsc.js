@@ -330,10 +330,10 @@ global.__tellVersion = function(sender){
 }
 
 global.__onCommand = function(sender,cmd,label,args){
-	if (label == "jsp"){
+	if (cmd == "jsp"){
 		return command.handleCommand(sender, cmd, label, args);	
 	}
-	else if (label == "js"){
+	else if (cmd == "js"){
 		global.self = sender;
 		try{ 
 			returnVar = _evaluator.eval(args.join(" "));
@@ -356,7 +356,7 @@ global.__onCommand = function(sender,cmd,label,args){
 		//Suppress the usage output.
 		return true;
 	}
-	else if (label == "jsc"){
+	else if (cmd == "jsc"){
 		__tellVersion(sender);
 	}
 	else{
