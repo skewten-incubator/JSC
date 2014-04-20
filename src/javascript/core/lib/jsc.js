@@ -234,10 +234,14 @@ function __onEnable(evaluator, plugin, root){
 				global.__confirmUpdate = false;
 			}
 		}
-	});
+	}, function(){return ["core"]});
 	command.register("cancel", function(a,p){
 		if (!p.isOp()){
 			__self.announcer.tell("You're not allowed to run the cancel command.", p);
+			return;
+		}
+		if (!global.__confirmUpdate){
+			__self.announcer.tell("There is no update pending!".yellow(), p);
 			return;
 		}
 		global.__confirmUpdate = false;
@@ -270,8 +274,8 @@ function __onEnable(evaluator, plugin, root){
 			var reader 	= new java.io.BufferedReader(new java.io.FileReader(obj)),
 				code 	= "",
 				line 	= "",
-				head 	= "(function(require, _filename, _dirname){",
-				tail	= "})";
+				head 	= "(function(exports, _filename, _dirname){",
+				tail	= ";return exports;})";
 			while ((line = reader.readLine()) !== null){
 				code += line+"\n";
 			}
@@ -330,10 +334,10 @@ global.__tellVersion = function(sender){
 }
 
 global.__onCommand = function(sender,cmd,label,args){
-	if (cmd == "jsp"){
+	if (cmd.getName() == "jsp"){
 		return command.handleCommand(sender, cmd, label, args);	
 	}
-	else if (cmd == "js"){
+	else if (cmd.getName() == "js"){
 		global.self = sender;
 		try{ 
 			returnVar = _evaluator.eval(args.join(" "));
@@ -341,7 +345,7 @@ global.__onCommand = function(sender,cmd,label,args){
 				if (returnVar === null){ 
 					__self.announcer.tell("null", sender);
 				}
-				else{ 
+				else{
 					__self.announcer.tell(returnVar.toString(), sender);
 				}
 			}
@@ -356,7 +360,7 @@ global.__onCommand = function(sender,cmd,label,args){
 		//Suppress the usage output.
 		return true;
 	}
-	else if (cmd == "jsc"){
+	else if (cmd.getName() == "jsc"){
 		__tellVersion(sender);
 	}
 	else{

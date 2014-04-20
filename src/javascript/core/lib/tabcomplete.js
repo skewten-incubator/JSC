@@ -2,45 +2,73 @@
 //////////////////////////////////////
 //tabcomplete.js
 //Module for handling tab completions.
-var logger = __self.logger.module("tabcomplete"),
-    command = require('command').commands;
+var logger = __self.logger.module("tabcomplete");
 
-function completeJSP(result, sender, cmd, alias, args){
-    var args = args;
-    var cmdInput = args[0];
-    var cmd = _commands[cmdInput];
-    if (cmd){
-        var opts = cmd.options;
-        var len = opts.length;
-        if (args.length == 1){
-            for (var i = 0;i < len; i++)
-                result.add(opts[i]);
-        }else{
-            // partial e.g. /jsp chat_color dar
-            for (var i = 0;i < len; i++){
-                if (opts[i].indexOf(args[1]) == 0){
-                    result.add(opts[i]);
-                }
-            }
-        }
-    }else{
-        if (args.length == 0){
-            for (var i in _commands)
-                result.add(i);
-        }else{
-            // partial e.g. /jsp al 
-            // should tabcomplete to alias 
-            //
-            for (var c in _commands){
-                if (c.indexOf(cmdInput) == 0){
-                    result.add(c);
-                }
-            }
+//Handle global commands.
+function handleGlobalCommand(result, sender, cmd, alias, args){
+    var cObj = command.gcommands[String(cmd.getName())];
+    if (!cObj || !cObj.tabHandler || !args[0]){
+        return;
+    }
+    var arr = cObj.tabHandler(sender, alias, args);
+    for (var i=0;i<arr.length;i++){
+        result.add(arr[i]);
+    }
+}
+
+function completeLocalCommand(result, args){
+    //Iterate through all the commands to try to find a match.
+    for (var i in command.commands){
+        if (i.toLowerCase().indexOf(args[0].toLowerCase()) > -1){
+            result.add(i);
         }
     }
-    return result;
-};
+}
 
+//Handle /jsp commands.
+function handleLocalCommand(result, sender, cmd, alias, args){
+    var cObj = command.commands[args[0]];
+    if (!cObj){
+        //Maybe it's a partial command.
+        completeLocalCommand(result, args);
+        return;
+    }
+    if (!cObj.tabHandler || !args[1]){
+        return;
+    }
+    var arr = cObj.tabHandler(sender, alias, args);
+    for (var i=0;i<arr.length;i++){
+        result.add(arr[i]);
+    }
+}
+
+function handleTabComplete(result, sender, cmd, alias, args){
+    //Check the command that is being used.
+    var command = String(cmd.getName());
+    //Convert all required variables to Javascript strings.
+    for (var i=0;i<args.length;i++){
+        args[i] = String(args[i]);
+    }
+    alias = String(alias);
+    switch(command){
+        case "js":
+            //We're not going to do anything with it yet.
+            return;
+        case "jsp":
+            handleLocalCommand(result, sender, cmd, alias, args);
+            break;
+        default:
+            handleGlobalCommand(result, sender, cmd, alias, args);
+            break;
+    }
+}
+
+exports.handle = handleTabComplete;
+
+/*
+    ScriptCraft's JS tabComplete functions.
+    Written by Walter Higgins (https://github.com/walterhiggins/), left for reference.
+*/
 var _isJavaObject = function(o){
     var result = false;
     try {
@@ -65,9 +93,7 @@ var _javaLangObjectMethods = [
     ,'clone'
     ,'finalize'
 ];
-    
-function _getProperties(o)
-{
+function _getProperties(o){
     var result = [];
     if (_isJavaObject(o))
     {
@@ -111,7 +137,6 @@ function _getProperties(o)
     }
     return result.sort();
 };
-
 var onTabCompleteJS = function(result, sender, cmd, alias, args){
     if (cmd.name == 'jsp'){
         return completeJSP(result, sender, cmd, alias, args);
@@ -206,14 +231,4 @@ var onTabCompleteJS = function(result, sender, cmd, alias, args){
     }
     for (var i = 0;i < propsOfLastArg.length; i++)
         result.add(propsOfLastArg[i]);
-}
-
-function handleTabComplete(result, sender, cmd, alias, args){
-    //Check the command that is being used.
-    logger.log("Tab complete called, cmd: "+cmd.getName());
-    logger.log("sender: "+sender);
-    logger.log("alias: "+alias);
-    logger.log("args: "+args);
-}
-
-exports.handle = handleTabComplete;
+};

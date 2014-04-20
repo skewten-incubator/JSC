@@ -9,48 +9,21 @@ var logger = __self.logger.module("command");
 	These go under the /jsp namespace, e.g. '/jsp butts'
 */
 var registeredCommands = {};
-function executeCmd(args, player){
-	if (args.length === 0){
-		if (!player){
-			throw new Error("Cannot execute the '/jsp' command without any arguments!");
-		}
-		__self.announcer.tell("Usage: /jsp <command> [args]", player);
-		return;
-	}
-	var name 	= args[0],
-		cmd 	= registeredCommands[name];
-	if (!cmd){
-		if (!player){
-			throw new Error("Unknown command.");
-		}
-		__self.announcer.tell("Unknown command.");
-	}
-	var result = null;
-	try{
-		cmd.callback(args.slice(1), player);
-	}
-	catch (e){
-		if (player){
-			__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
-		}
-		logger.error("Error while trying to execute the command '"+name+"'.");
-		logger.error("Arguments used: "+JSON.stringify(args));
-		throw e;
-	}
-};
-
-function registerCommand(name, func){
+function registerCommand(name, handler, tabHandler){
 	if (registeredCommands[name]){
 		logger.warn("The command "+name+" is being overwritten by another plugin.");
 	}
-	if (!func){
+	if (!handler){
 		throw new Error("Command function is undefined.");
 	}
-	if (typeof func != "function"){
-		throw new Error("Command parameter 'function' is not a function.");
+	if (typeof handler != "function"){
+		throw new Error("Command parameter 'handler' is not a function.");
 	}
-	registeredCommands[name] = func;
-	return func;
+	registeredCommands[name] = {
+		handler: handler,
+		tabHandler: tabHandler
+	};
+	return registeredCommands[name];
 };
 
 function handleCommand(sender, cmd, label, args){
@@ -62,7 +35,7 @@ function handleCommand(sender, cmd, label, args){
 		return false;
 	}
 	if (registeredCommands[a[0]]){
-		var returnVal = registeredCommands[a[0]](a, sender);
+		var returnVal = registeredCommands[a[0]].handler(a, sender);
 		if (returnVal === false){
 			return false;
 		}
@@ -77,8 +50,6 @@ function handleCommand(sender, cmd, label, args){
 	}
 }
 
-registerCommand.prototype.exec = executeCmd;
-
 exports.register 		= registerCommand;
 exports.commands 		= registeredCommands;
 exports.handleCommand 	= handleCommand;
@@ -89,61 +60,34 @@ exports.handleCommand 	= handleCommand;
 */
 
 var gregisteredCommands = {};
-var gexecuteCmd = function(args, player){
-	if (args.length === 0){
-		if (!player){
-			throw new Error("Cannot execute the '/jsp' command without any arguments!");
-		}
-		__self.announcer.tell("Usage: /jsp <command> [args]", player);
-		return;
-	}
-	var name 	= args[0],
-		cmd 	= gregisteredCommands[name];
-	if (!cmd){
-		if (!player){
-			throw new Error("Unknown command.");
-		}
-		__self.announcer.tell("Unknown command.");
-	}
-	var result = null;
-	try{
-		cmd.callback(args.slice(1), player);
-	}
-	catch (e){
-		if (player){
-			__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
-		}
-		logger.error("Error while trying to execute the command '"+name+"'.");
-		logger.error("Arguments used: "+JSON.stringify(args));
-		throw e;
-	}
-};
-
-var gregisterCommand = function(name, func){
+var gregisterCommand = function(name, handler, tabHandler){
 	var gregister = true;
 	if (gregisteredCommands[name]){
 		logger.warn("The global command "+name+" is being overwritten by another plugin.");
 		gregister = false;
 	}
-	if (!func){
+	if (!handler){
 		throw new Error("Command function is undefined.");
 	}
-	if (typeof func != "function"){
-		throw new Error("Command parameter 'function' is not a function.");
+	if (typeof handler != "function"){
+		throw new Error("Command parameter 'handler' is not a function.");
 	}
-	gregisteredCommands[name] = func;
+	gregisteredCommands[name] = {
+		handler: handler,
+		tabHandler: tabHandler
+	};
 	gregister && _plugin.registerGlobalCommand(name);
-	return func;
+	return gregisteredCommands[name];
 };
 
 function ghandleCommand(sender, cmd, label, args){
 	var a = [];
-	a.push(String(cmd));
+	a.push(String(cmd.getName()));
 	for (var i=0;i<args.length;i++){
 		a.push(String(args[i]));
 	}
 	if (gregisteredCommands[cmd]){
-		var returnVal = gregisteredCommands[cmd](a, sender);
+		var returnVal = gregisteredCommands[cmd].handler(a, sender);
 		if (returnVal === false){
 			return false;
 		}
@@ -158,7 +102,6 @@ function ghandleCommand(sender, cmd, label, args){
 		return true;
 	}
 }
-gregisterCommand.prototype.exec = gexecuteCmd;
 
 exports.gregister = gregisterCommand;
 exports.gcommands = gregisteredCommands;
