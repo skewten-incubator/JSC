@@ -2,10 +2,9 @@
 ///////////////////////////////////////////////
 //announcer.js
 //Module for broadcasting messages to player(s)
-var logger = __self.logger;
-logger = logger.module("announcer");
+var logger = __self.logger.module("announcer");
 var Announcer = function(object){
-	var self = {};
+	var self = this;
 	self.tell_prefix = object.tell_prefix || "Server> ".gray();
 	self.broadcast_prefix = object.broadcast_prefix || "[Server] ";
 	self.tell_raw = function(message, player){
@@ -23,6 +22,5 @@ var Announcer = function(object){
 	self.broadcast = function(message){
 		self.broadcast_raw(self.broadcast_prefix+message);
 	};
-	return self;
 }
 exports = Announcer;

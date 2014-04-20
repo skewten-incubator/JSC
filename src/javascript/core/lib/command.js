@@ -2,49 +2,44 @@
 //////////////////////////////////////////
 //command.js
 //Module for managing registered commands.
-var logger = __self.logger;
-logger = logger.module("command");
+var logger = __self.logger.module("command");
 
+/*
+	Local commands.
+	These go under the /jsp namespace, e.g. '/jsp butts'
+*/
 var registeredCommands = {};
-
-var executeCmd = function(args, player){
+function executeCmd(args, player){
 	if (args.length === 0){
-		if (player){
-			__self.announcer.tell("Usage: /jsp <command> [args]", player);	
-		}
-		else{
+		if (!player){
 			throw new Error("Cannot execute the '/jsp' command without any arguments!");
 		}
+		__self.announcer.tell("Usage: /jsp <command> [args]", player);
+		return;
 	}
-	else{
-		var name = args[0];
-		var cmd = registeredCommands[name];
-		if (!cmd){
-			if (player){
-				__self.announcer.tell("Unknown command.");	
-			}
-			else{
-				throw new Error("Unknown command.");
-			}
+	var name 	= args[0],
+		cmd 	= registeredCommands[name];
+	if (!cmd){
+		if (!player){
+			throw new Error("Unknown command.");
 		}
-		else{
-			var result = null;
-			try{
-				cmd.callback(args.slice(1), player);
-			}
-			catch (e){
-				if (player){
-					__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
-				}
-				logger.error("Error while trying to execute the command '"+name+"'.");
-				logger.error("Arguments used: "+JSON.stringify(args));
-				throw e;
-			}
+		__self.announcer.tell("Unknown command.");
+	}
+	var result = null;
+	try{
+		cmd.callback(args.slice(1), player);
+	}
+	catch (e){
+		if (player){
+			__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
 		}
+		logger.error("Error while trying to execute the command '"+name+"'.");
+		logger.error("Arguments used: "+JSON.stringify(args));
+		throw e;
 	}
 };
 
-var registerCommand = function(name, func){
+function registerCommand(name, func){
 	if (registeredCommands[name]){
 		logger.warn("The command "+name+" is being overwritten by another plugin.");
 	}
@@ -78,9 +73,9 @@ function handleCommand(sender, cmd, label, args){
 
 registerCommand.prototype.exec = executeCmd;
 
-exports.register = registerCommand;
-exports.commands = registeredCommands;
-exports.handleCommand = handleCommand;
+exports.register 		= registerCommand;
+exports.commands 		= registeredCommands;
+exports.handleCommand 	= handleCommand;
 
 /*
 	Global commands.
@@ -89,29 +84,32 @@ exports.handleCommand = handleCommand;
 
 var gregisteredCommands = {};
 var gexecuteCmd = function(args, player){
-	var name = args[0];
-	var cmd = gregisteredCommands[name];
-	if (!cmd){
-		if (player){
-			__self.announcer.tell("Unknown command.");	
+	if (args.length === 0){
+		if (!player){
+			throw new Error("Cannot execute the '/jsp' command without any arguments!");
 		}
-		else{
+		__self.announcer.tell("Usage: /jsp <command> [args]", player);
+		return;
+	}
+	var name 	= args[0],
+		cmd 	= gregisteredCommands[name];
+	if (!cmd){
+		if (!player){
 			throw new Error("Unknown command.");
 		}
+		__self.announcer.tell("Unknown command.");
 	}
-	else{
-		var result = null;
-		try{
-			cmd.callback(args.slice(1), player);
+	var result = null;
+	try{
+		cmd.callback(args.slice(1), player);
+	}
+	catch (e){
+		if (player){
+			__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
 		}
-		catch (e){
-			if (player){
-				__self.announcer.tell("An error occured while trying to run the command.".red(), player);	
-			}
-			logger.error("Error while trying to execute the command '"+name+"'.");
-			logger.error("Arguments used: "+JSON.stringify(args));
-			throw e;
-		}
+		logger.error("Error while trying to execute the command '"+name+"'.");
+		logger.error("Arguments used: "+JSON.stringify(args));
+		throw e;
 	}
 };
 

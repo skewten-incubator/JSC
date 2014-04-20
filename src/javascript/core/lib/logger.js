@@ -3,7 +3,7 @@
 //logger.js
 //Module for logging messages to the console.
 var Logger = function(object){
-	var self = {};
+	var self = this;
 	self.name = String(object.prefix);
 	self.prefix = "{"+self.name.darkpurple()+"} " || "{"+"UnknownPlugin".darkpurple()+"} ";
 	self.logPrefix = (object.logPrefix)?"<"+String(object.logPrefix).green()+"> ":"";
@@ -56,6 +56,5 @@ var Logger = function(object){
 			debugLevel: self.debugLevel
 		});
 	}
-	return self;
 }
 exports = Logger;

@@ -2,11 +2,13 @@
 ////////////////////////////////////////////
 //require.js
 //Module for "requiring" Javascript modules.
-var Require =(function(evaluator, root, paths){
-	var logger = __self.logger;
-	logger = logger.module("require");
-	var result = null;
-	var File = java.io.File;
+
+var Require = function(evaluator, root, paths){
+	var self 	= this,
+		logger 	= __self.logger.module("require"),
+		result 	= null,
+		File 	= java.io.File;
+	
 	function locate_module(obj){
 		var newobj;
 		if (!obj.exists()){
@@ -47,14 +49,20 @@ var Require =(function(evaluator, root, paths){
 		}
 	}
 	function load_module(obj){
-		var reader = new java.io.BufferedReader(new java.io.FileReader(obj));
-		var code = "";
-		var line;
+		var reader 	= new java.io.BufferedReader(new java.io.FileReader(obj)),
+			code 	= "",
+			line,
+			head 	= "(function(exports, _filename, _dirname){",
+			tail 	= ";return exports;})";
+
+		//Check if it's cached. If it is, return the cached exports.
+		if (__JSCache[obj.getCanonicalPath()]){
+			return __JSCache[obj.getCanonicalPath()];
+		}
+
 		while ((line = reader.readLine()) !== null){
 			code += line+"\n";
 		}
-		var head = "(function(exports, _filename, _dirname){";
-		var tail = ";return exports;})";
 		code = head+code+tail;
 		try{
 			var compiled = evaluator.eval(code);	
@@ -75,9 +83,12 @@ var Require =(function(evaluator, root, paths){
 			logger.error("Could not execute the "+obj.getName()+" module!");
 			throw e;
 		}
+		//Cache the exports.
+		__JSCache[obj.getCanonicalPath()] = exports;
 		return exports;
 	}
-	function require(path, absolute){
+	
+	function do_require(path, absolute){
 		path = String(path);
 		if (absolute && path[0] == "/"){
 			result = locate_module(new File(path));
@@ -130,6 +141,7 @@ var Require =(function(evaluator, root, paths){
 			throw new Error("File not found");
 		}
 	}
-	return require;
-});
+	//Allow access to do_require
+	self.require = do_require;
+};
 exports = Require;

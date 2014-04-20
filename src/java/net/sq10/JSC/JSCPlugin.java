@@ -59,19 +59,17 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 		}
 	}
 	
-	//Disabled; not going to mess with it.
-	/*
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args){
 		List<String> result = new ArrayList<String>();
 		try{
-			invocable.invokeFunction("__onTabComplete", result, sender, cmd, alias, args);
+			invocable.invokeFunction("__tabComplete", result, sender, cmd, alias, args);
 		}
 		catch (Exception e){
 			sender.sendMessage(e.getMessage());
 			e.printStackTrace();
 		}
 		return result;
-	}*/
+	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		Object jsResult = null;

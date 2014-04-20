@@ -81,7 +81,10 @@ function __onEnable(evaluator, plugin, root){
 			reader 	= new java.io.BufferedReader(new java.io.FileReader(fileobj)),
 			code 	= "",
 			line;
-		
+
+		//We're not checking for cache here because it'd be stupid to.
+		//Caching will be used by the actual require() plugin.
+
 		while ((line = reader.readLine()) !== null){
 			code += line+"\n";
 		}
@@ -111,11 +114,15 @@ function __onEnable(evaluator, plugin, root){
 			logger.debug(e.stack);
 			return;
 		}
+		//Cache the exports.
+		__JSCache[fileobj.getCanonicalPath()] = exports;
 		return exports;
 	}
 
 	////////////////////////////
 	//Set up global environment
+	//global JS cache.
+	global.__JSCache = {};
 	//root path (usually {bukkitdir}/plugins/jsc/)
 	global._root = root.getParentFile().getCanonicalPath();
 	//java Plugin object
@@ -152,7 +159,6 @@ function __onEnable(evaluator, plugin, root){
 		broadcast_prefix: "["+"JSC".gold()+"]> "
 	});
 	var announcer = __self.announer;
-
 	//load the command module
 	global.command = require("command");
 	//load the events module
@@ -277,7 +283,7 @@ function __onEnable(evaluator, plugin, root){
 			}
 			//If we could compile, then we run it asynchronously.
 			try{
-				setTimeout(function(){compiled.call(
+				setTimeout(function(){__JSCache[obj.getCanonicalPath()] = compiled.call(
 					compiled,
 					global.require,
 					obj.getName(),
@@ -346,6 +352,8 @@ global.__onCommand = function(sender,cmd,label,args){
 		__tellVersion(sender);
 	}
 	else{
-		return _command.ghandleCommand(sender, cmd, label, args);
+		return command.ghandleCommand(sender, cmd, label, args);
 	}
 }
+
+global.__tabComplete = require("tabcomplete").handle;
