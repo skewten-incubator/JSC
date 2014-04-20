@@ -9,6 +9,7 @@ var logger 				= __self.logger.module("plugin"),
 
 var JSCPlugin = function(name, commands){
 	var self = this;
+	self.name = name;
 	self.data = {};
 	self.commands = commands;
 }
@@ -73,7 +74,7 @@ function onPluginLoad(){
 			//Try to load the JSON.
 			var pluginobj = jsonfile.load(files[i]);
 			if (!pluginobj.name){
-				logger.error("JSON doesn't have a name! Skipping.");
+				logger.error("JSON file "+files[i].getName()+" doesn't have a name property! Skipping.");
 				continue;
 			}
 			if (!pluginobj.data){
