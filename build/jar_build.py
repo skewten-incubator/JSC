@@ -14,12 +14,12 @@ def run():
         conf = json.load(conf_file)
         conf_file.close()
     print("6.2: Running command.")
-    cmdstr = "jar cf ../bin/jsc-"+conf["version"]+"-"+conf["suffix"]+"-"+conf["build"]+".jar"
+    cmdstr = "jar cf ../bin/jsc-"+conf["version"]+"-"+conf["suffix"]+"-"+conf["build"]+".jar "
     os.chdir(".buildtmp/java/")
     for dirname, dirnames, filenames in os.walk('./'):
         for filename in filenames:
             fullname = os.path.join(dirname, filename).replace("\\","/")
-            cmdstr += " "+fullname
+            cmdstr += " '"+fullname+"'"
     print("Executing: "+cmdstr)
     try:
         child = subprocess.Popen(cmdstr, shell=True)

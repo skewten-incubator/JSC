@@ -6,6 +6,8 @@
 #   Clean up build environment
 
 import shutil
+import os
+
 def run(tmpdirs, cleanonly=False):
 	if cleanonly == True:
 		cleanup(tmpdirs)
@@ -16,8 +18,11 @@ def run(tmpdirs, cleanonly=False):
 	cleanup(tmpdirs)
 
 def movejar():
-	shutil.rmtree("bin")
-	shutil.move(".buildtmp/bin/", "./")
+	for fn in os.listdir(".buildtmp/bin/"):
+		if os.path.isfile("bin/"+fn):
+			print("Replacing bin/"+fn+" with the new file")
+			os.remove("bin/"+fn)
+		shutil.move(".buildtmp/bin/"+fn, "bin/"+fn)
 
 def cleanup(tmpdirs):
 	#Count is there so we don't remove the first 2 dirs in tmpdirs.
