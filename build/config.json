@@ -1,5 +1,7 @@
 {
     "minify_javascript": false,
     "minify_json": false,
-    "use_extra": true
+    "use_extra": true,
+    "force_java_version": false,
+    "java_version": 7
 }

@@ -16,7 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 //Test import. Not used just yet
-import com.google.gson.Gson;
+import com.eclipsesource.json.JsonObject;
 
 import net.sq10.JSC.Metrics;
 import net.sq10.JSC.AbstractCommand;

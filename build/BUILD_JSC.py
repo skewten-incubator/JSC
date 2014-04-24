@@ -9,21 +9,25 @@
 import json
 import os
 import shutil
+import sys
+import cleanup
+
+def quit():
+    print("An error occured while building JSC. Aborting.")
+    cleanup.run(tmpdirs,True)
+    sys.exit(1)
 
 print("0: Preparing build environment")
 os.chdir("../")
 tmpdirs = [
     ".buildtmp/",
+    ".buildtmp/includes",
     ".buildtmp/js",
     ".buildtmp/java",
-    ".buildtmp/bin",
-    ".buildtmp/includes"
+    ".buildtmp/bin"
 ]
 if os.path.exists(tmpdirs[0]):
-    #Remove every dir EXCEPT the includes dir.
-    shutil.rmtree(tmpdirs[1])
-    shutil.rmtree(tmpdirs[2])
-    shutil.rmtree(tmpdirs[3])
+    cleanup.run(tmpdirs,True)
 for tmpdir in tmpdirs:
     if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
@@ -51,8 +55,17 @@ js_zip.run()
 
 print("5: Compiling Java")
 import java_compile
-java_compile.run()
+error = java_compile.run(conf)
+if error == True:
+    quit()
 
 print("6: Generating .jar")
 import jar_build
-jar_build.run()
+error = jar_build.run()
+if error == True:
+    quit()
+
+print("7: Cleaning up")
+cleanup.run(tmpdirs)
+
+print("8: Done! Your new .jar is in JSC/bin.")

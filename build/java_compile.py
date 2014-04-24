@@ -14,11 +14,13 @@ import urllib.parse
 import os
 import shutil
 
-def run():
+def run(conf):
     print("5.1: Looking for Craftbukkit")
     dlbukkit()
     print("5.2: Compiling JSC Java code")
-    compilejava()
+    error = compilejava(conf)
+    if error == True:
+        return error
     print("5.3: Copying dependencies")
     copydeps()
 
@@ -45,10 +47,10 @@ def dlbukkit():
         print(status)
     f.close()
 
-def compilejava():
+def compilejava(conf):
     classpath = [
-        ".buildtmp/includes/bukkit.jar",
-        "src/java/dependencies/gson.jar"
+        "src/java/dependencies/minjson.jar",
+        ".buildtmp/includes/bukkit.jar"
     ]
     files = [
         "src/java/net/sq10/JSC/JSCPlugin.java",
@@ -57,22 +59,35 @@ def compilejava():
     ]
     directory = ".buildtmp/java/"
     classpathcount = 1
-    cmdstr = "javac -source 1.7 -target 1.7 -classpath "
+    ver = str(int(conf["java_version"]))
+    if conf["force_java_version"] == True:
+        cmdstr = "javac -source "+ver+" -target "+ver+" -d "+directory+" -classpath "
+    else:
+        cmdstr = "javac -d "+directory+" -cp '"
+    if os.name == "nt":
+        cpsep = ";"
+    else:
+        cpsep = ":"
     for cp in classpath:
         if len(classpath) == classpathcount:
             cmdstr += cp
         else:
-            cmdstr += cp+";"
+            cmdstr += cp+cpsep
         classpathcount += 1
-    cmdstr += " "
+    cmdstr += "' "
     for fn in files:
         cmdstr += fn+" "
-    cmdstr += "-d "+directory
     print("Executing: "+cmdstr)
-    child = subprocess.Popen(cmdstr)
-    streamdata = child.communicate()[0]
-    ecode = child.returncode
-    print("Exit code: "+str(ecode))
+    try:
+        child = subprocess.Popen(cmdstr, shell=True)
+        streamdata = child.communicate()[0]
+        ecode = child.returncode
+        print("Exit code: "+str(ecode))
+        if ecode != 0:
+            return True
+    except FileNotFoundError:
+        print("Could not run 'javac': Do you have the JDK installed and in your PATH?")
+        return True
 
 def copydeps():
     for dirname, dirnames, filenames in os.walk('src/java/dependencies'):

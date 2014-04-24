@@ -21,8 +21,12 @@ def run():
             fullname = os.path.join(dirname, filename).replace("\\","/")
             cmdstr += " "+fullname
     print("Executing: "+cmdstr)
-    child = subprocess.Popen(cmdstr)
-    streamdata = child.communicate()[0]
-    ecode = child.returncode
-    print("Exit code: "+str(ecode))
+    try:
+        child = subprocess.Popen(cmdstr, shell=True)
+        streamdata = child.communicate()[0]
+        ecode = child.returncode
+        print("Exit code: "+str(ecode))
+    except FileNotFoundError:
+        print("Could not run 'jar': Do you have the JDK installed and in your PATH?")
+        return True
     os.chdir("../../")
