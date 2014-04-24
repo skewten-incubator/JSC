@@ -106,7 +106,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
         dirs[1] = "plugins";
         dirs[2] = "modules";
         for (int i=0;i<arrlength;i++){
-            File curitem = new File(JS_PLUGINS_DIR+"lib/");
+            File curitem = new File(JS_PLUGINS_DIR+"/"+dirs[i]+"/");
             if (!curitem.exists() || !curitem.isDirectory()){
                 if (curitem.exists()){
                     curitem.delete();
