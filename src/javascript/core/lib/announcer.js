@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 ///////////////////////////////////////////////
 //announcer.js
 //Module for broadcasting messages to player(s)

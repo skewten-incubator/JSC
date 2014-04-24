@@ -15,13 +15,16 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+//Test import. Not used just yet
+import com.google.gson.Gson;
+
 import net.sq10.JSC.Metrics;
 import net.sq10.JSC.AbstractCommand;
 
 public class JSCPlugin extends JavaPlugin implements Listener{
     private static final String JS_PLUGINS_DIR = "plugins/jsc";
-    private static final String JS_PLUGINS_COREZIP = "jsc_core.zip";
-    private static final String JS_PLUGINS_EXTRAZIP = "jsc_extra.zip";
+    private static final String JS_PLUGINS_COREZIP = "js_core.zip";
+    private static final String JS_PLUGINS_EXTRAZIP = "js_extra.zip";
     private ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
     private Invocable invocable = (Invocable) engine;
     private File plugindir = new File(JS_PLUGINS_DIR);

@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 //////////////////////////////////////////
 //command.js
 //Module for managing registered commands.

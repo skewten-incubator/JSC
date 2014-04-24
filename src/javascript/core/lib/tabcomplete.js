@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 //////////////////////////////////////
 //tabcomplete.js
 //Module for handling tab completions.

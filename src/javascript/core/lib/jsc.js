@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 /*THIS FILE IS EXECUTED BEFORE ANY OTHER FILE !*/
 
 //////////////////////////////////
@@ -255,8 +255,7 @@ function __onEnable(evaluator, plugin, root){
     //Handle plugin unloading.
     events.on("server.PluginDisableEvent", function(l,e){
         if (e.getPlugin() != _plugin){
-            logger.error("Disable: e.getPlugin() isn't the same as _plugin!");
-            return;
+            logger.warn("Disable: e.getPlugin() isn't the same as _plugin!");
         }
         logger.log("Unloading plugin.");
         global.plugin._unload();

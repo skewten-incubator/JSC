@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 //////////////////////////////////////////////////////////
 //plugin.js
 //Module for registering a plugin that will save its data.

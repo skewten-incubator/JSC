@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 /////////////////////////////////////////////
 //logger.js
 //Module for logging messages to the console.

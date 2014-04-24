@@ -1,4 +1,4 @@
-"use strict";
+//BUILD #1
 ///////////////////////////////////////////
 //jsonfile.js
 //Module for saving and loading JSON files.
