@@ -23,11 +23,12 @@ import net.sq10.JSC.AbstractCommand;
 
 public class JSCPlugin extends JavaPlugin implements Listener{
     private static final String JS_PLUGINS_DIR = "plugins/jsc";
-    private static final String JS_PLUGINS_COREZIP = "js_core.zip";
-    private static final String JS_PLUGINS_EXTRAZIP = "js_extra.zip";
+    private static final String JS_COREZIP = "js_core.zip";
+    private static final String JS_EXTRAZIP = "js_extra.zip";
+    private File plugindir = new File(JS_PLUGINS_DIR);
+    
     private ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
     private Invocable invocable = (Invocable) engine;
-    private File plugindir = new File(JS_PLUGINS_DIR);
     private JavaPlugin pluginInstance;
 
     @Override
@@ -45,9 +46,6 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 
         //Set up the directory.
         initDir();
-
-        //Check if all files are intact. False for "we're not updating".
-        checkFiles(false);
 
         //Try to read the jsc.js file, and run the __onEnable function.
         FileReader reader = null;
@@ -102,103 +100,90 @@ public class JSCPlugin extends JavaPlugin implements Listener{
 
     //Initializes the plugin's directory.
     private void initDir(){
-        if (!plugindir.exists() || !plugindir.isDirectory()){
-            getLogger().warning("Directory "+JS_PLUGINS_DIR+" does not exist or is a file, assuming fresh install.");
-            if (plugindir.exists()){
-                plugindir.delete();
+        int arrlength = 3;
+        String[] dirs = new String[arrlength];
+        dirs[0] = "lib";
+        dirs[1] = "plugins";
+        dirs[2] = "modules";
+        for (int i=0;i<arrlength;i++){
+            File curitem = new File(JS_PLUGINS_DIR+"lib/");
+            if (!curitem.exists() || !curitem.isDirectory()){
+                if (curitem.exists()){
+                    curitem.delete();
+                }
+                getLogger().warning("Directory "+curitem.getPath()+" does not exist or is a file, creating dir.");
+                curitem.mkdirs();
             }
-            plugindir.mkdirs();
-            checkFiles(false);
-
-            //Don't install the extra files. I'm going to do something different later.
-            //installExtraFiles();
         }
+        checkFiles(false, "core");
+        checkFiles(false, "extra");
     }
 
     //Checks if any core files are missing.
-    public void checkFiles(boolean doUpdate){
-        ZipInputStream core_zis = new ZipInputStream(getResource(JS_PLUGINS_COREZIP));
-        ZipEntry core_entry;
-        boolean update = false;
-        ArrayList<String> ftu = new ArrayList<String>();
+    public boolean checkFiles(boolean update, String what){
+        getLogger().info("Checking "+what+".");
+        ZipInputStream zis;
+        if (what == "core"){
+            zis = new ZipInputStream(getResource(JS_COREZIP));
+        }
+        if (what == "extra" && getResource(JS_EXTRAZIP) != null){
+            zis = new ZipInputStream(getResource(JS_EXTRAZIP));            
+        }
+        else{
+            getLogger().warning("checkFiles called with 'what'='"+what+"'; unknown resource!");
+            return false;
+        }
+        ZipEntry zip_entry;
+        ArrayList<String> files_to_update = new ArrayList<String>();
+        boolean can_be_updated = false;
+
         try{
-            if (doUpdate){
-                getLogger().warning("[CORE] Updating.");
+            if (update){
+                getLogger().warning("["+what+"] Updating.");
             }
-            while ((core_entry=core_zis.getNextEntry()) != null){
-                String filename = core_entry.getName();
+            while ((zip_entry = zis.getNextEntry()) != null){
+                String filename = zip_entry.getName();
                 File newFile = new File(plugindir, filename);
-                if (!doUpdate){
-                    if (newFile.exists() && newFile.isFile() && core_entry.getTime() > newFile.lastModified()){
-                        ftu.add(newFile.getCanonicalPath().replace(new File("plugins/jsc").getCanonicalPath()+File.separator, ""));
-                        update = true;
+                if (!update){
+                    if (newFile.exists() && newFile.isFile() && zip_entry.getTime() > newFile.lastModified()){
+                        files_to_update.add(newFile.getCanonicalPath().replace(new File("plugins/jsc").getCanonicalPath()+File.separator, ""));
+                        can_be_updated = true;
                     }
                 }
-                if (!newFile.exists() && core_entry.isDirectory()){
-                    getLogger().info("[CORE] Making directory "+newFile.getCanonicalPath());
+                if (!newFile.exists() && zip_entry.isDirectory()){
+                    getLogger().info("["+what+"] Making directory "+newFile.getCanonicalPath());
                     newFile.mkdirs();
                 }
                 else{
                     boolean unzip = false;
-                    if (!newFile.exists() || doUpdate){
+                    if (!newFile.exists() || update){
                         unzip = true;
                     }
-                    if (unzip && !core_entry.isDirectory()){
-                        getLogger().info("[CORE] Unzipping " + newFile.getCanonicalPath());
+                    if (unzip && !zip_entry.isDirectory()){
+                        getLogger().info("["+what+"] Unzipping " + newFile.getCanonicalPath());
                         FileOutputStream fout = new FileOutputStream(newFile);
-                        for (int c=core_zis.read();c!=-1;c=core_zis.read()){
+                        for (int c=zis.read();c!=-1;c=zis.read()){
                             fout.write(c);
                         }
                         fout.close();
                     }
                 }
-                core_zis.closeEntry();
+                zis.closeEntry();
             }
-            core_zis.close();
+            zis.close();
         }
         catch (IOException ioe){
             getLogger().warning(ioe.getMessage());
             ioe.printStackTrace();
         }
-        if (update){
-            getLogger().warning("[CORE] Updated files are available! To update, do /jsp update core");
-            getLogger().warning("[CORE] Files to update are:");
-            for (int i=0;i<ftu.size();i++){
-                getLogger().warning("       "+ftu.get(i));
+        if (can_be_updated){
+            getLogger().warning("["+what+"] Updated files are available! To update, do /jsp update core");
+            getLogger().warning("["+what+"] Files to update are:");
+            for (int i=0;i<files_to_update.size();i++){
+                getLogger().warning("\t"+files_to_update.get(i));
             }
         }
-    }
-
-    //Installs the extra plugin files.
-    public void installExtraFiles(){
-        ZipInputStream extra_zis = new ZipInputStream(getResource(JS_PLUGINS_EXTRAZIP));
-        ZipEntry extra_entry;
-        try{
-            while ((extra_entry=extra_zis.getNextEntry()) != null){
-                String filename = extra_entry.getName();
-                File newFile = new File(plugindir, filename);
-                if (!newFile.exists()){
-                    if (extra_entry.isDirectory()){
-                        getLogger().info("[EXTRA] Making directory "+newFile.getCanonicalPath());
-                        newFile.mkdirs();
-                    }
-                    else{
-                        getLogger().info("[EXTRA] Unzipping " + newFile.getCanonicalPath());
-                        FileOutputStream fout = new FileOutputStream(newFile);
-                        for (int c=extra_zis.read();c!=-1;c=extra_zis.read()){
-                            fout.write(c);
-                        }
-                        fout.close();
-                        extra_zis.closeEntry();
-                    }
-                }
-            }
-            extra_zis.close();
-        }
-        catch (IOException ioe){
-            getLogger().warning(ioe.getMessage());
-            ioe.printStackTrace();
-        }
+        return true;
     }
 
     public void registerGlobalCommand(String command, String usage, String description){

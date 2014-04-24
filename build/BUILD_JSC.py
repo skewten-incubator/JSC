@@ -1,5 +1,5 @@
 ################
-#JSC builder 0.1
+#JSC builder 0.5
 ################
 #Step 1 of building JSC:
 #   Reads config.json
