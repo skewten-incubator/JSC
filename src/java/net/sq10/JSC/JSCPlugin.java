@@ -126,7 +126,7 @@ public class JSCPlugin extends JavaPlugin implements Listener{
         if (what == "core"){
             zis = new ZipInputStream(getResource(JS_COREZIP));
         }
-        if (what == "extra" && getResource(JS_EXTRAZIP) != null){
+        else if (what == "extra" && getResource(JS_EXTRAZIP) != null){
             zis = new ZipInputStream(getResource(JS_EXTRAZIP));            
         }
         else{
