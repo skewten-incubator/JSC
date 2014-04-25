@@ -1,4 +1,4 @@
-//BUILD #1
+//BUILD #2
 /*THIS FILE IS EXECUTED BEFORE ANY OTHER FILE !*/
 
 //////////////////////////////////
@@ -228,7 +228,7 @@ function __onEnable(evaluator, plugin, root){
             }
             else{
                 if (a[1] == "core"){
-                    plugin.checkFiles(true);
+                    plugin.checkFiles(true, "core");
                     __self.announcer.tell("Done. To load the new files, run the 'reload' command.".green(), p);
                 }
                 global.__confirmUpdate = false;

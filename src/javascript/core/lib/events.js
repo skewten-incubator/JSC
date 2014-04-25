@@ -1,4 +1,4 @@
-//BUILD #1
+//BUILD #2
 ////////////////////////////////////////
 //events.js
 //Module for adding and removing events.
@@ -20,10 +20,9 @@ function on(eventName, handler, priority){
             eventType = eventType[subPkgs[i]];
         }
     }
-    var ee = new org.bukkit.plugin.EventExecutor();
-    ee.execute = function(l,e){
+    var ee = new org.bukkit.plugin.EventExecutor({execute: function(l,e){
         handler(registeredListener, e);
-    }
+    }});
     var registeredListener = 
         new org.bukkit.plugin.RegisteredListener(
             _plugin, 

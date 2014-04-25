@@ -1,4 +1,4 @@
-//BUILD #1
+//BUILD #2
 /*
     JSC.extra.permissions:Plugin
     
@@ -22,7 +22,7 @@ else{
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-var logger = require("logger")({
+var logger = new (require("logger"))({
     prefix: "JSC.Perms"
 }).module("main");
 

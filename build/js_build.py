@@ -58,7 +58,7 @@ def write_json(jsb, count):
     global minify_json
     print("2.3."+str(count)+": Processing "+jsb)
     os.makedirs(".buildtmp/js/"+jsb+"/")
-    with open(".buildtmp/js/"+jsb+"/builds.json", 'w') as outfile:
+    with open(".buildtmp/js/"+jsb+"/"+jsb+"_builds.json", 'w') as outfile:
         json.dump(js_builds[jsb], outfile, indent=2, separators=(',',':'))
 
 def copy_dir(jsb, count):

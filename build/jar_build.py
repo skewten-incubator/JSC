@@ -20,6 +20,8 @@ def run():
         for filename in filenames:
             fullname = os.path.join(dirname, filename).replace("\\","/")
             cmdstr += " '"+fullname+"'"
+    if os.name == "nt":
+        cmdstr = cmdstr.replace("'", "")
     print("Executing: "+cmdstr)
     try:
         child = subprocess.Popen(cmdstr, shell=True)

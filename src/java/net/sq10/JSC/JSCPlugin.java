@@ -144,29 +144,15 @@ public class JSCPlugin extends JavaPlugin implements Listener{
             while ((zip_entry = zis.getNextEntry()) != null){
                 String filename = zip_entry.getName();
                 File newFile = new File(plugindir, filename);
-                if (!update){
-                    if (newFile.exists() && newFile.isFile() && zip_entry.getTime() > newFile.lastModified()){
-                        files_to_update.add(newFile.getCanonicalPath().replace(new File("plugins/jsc").getCanonicalPath()+File.separator, ""));
-                        can_be_updated = true;
+                boolean updateFile = false;
+                if (!newFile.exists() || updateFile){
+                    newFile.getParentFile().mkdirs();
+                    getLogger().info("["+what+"] Unzipping " + newFile.getCanonicalPath());
+                    FileOutputStream fout = new FileOutputStream(newFile);
+                    for (int c=zis.read();c!=-1;c=zis.read()){
+                        fout.write(c);
                     }
-                }
-                if (!newFile.exists() && zip_entry.isDirectory()){
-                    getLogger().info("["+what+"] Making directory "+newFile.getCanonicalPath());
-                    newFile.mkdirs();
-                }
-                else{
-                    boolean unzip = false;
-                    if (!newFile.exists() || update){
-                        unzip = true;
-                    }
-                    if (unzip && !zip_entry.isDirectory()){
-                        getLogger().info("["+what+"] Unzipping " + newFile.getCanonicalPath());
-                        FileOutputStream fout = new FileOutputStream(newFile);
-                        for (int c=zis.read();c!=-1;c=zis.read()){
-                            fout.write(c);
-                        }
-                        fout.close();
-                    }
+                    fout.close();
                 }
                 zis.closeEntry();
             }

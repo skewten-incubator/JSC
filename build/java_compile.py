@@ -77,6 +77,8 @@ def compilejava(conf):
     cmdstr += "' "
     for fn in files:
         cmdstr += fn+" "
+    if os.name == "nt":
+        cmdstr = cmdstr.replace("'", "")
     print("Executing: "+cmdstr)
     try:
         child = subprocess.Popen(cmdstr, shell=True)
