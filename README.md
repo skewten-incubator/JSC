@@ -1,5 +1,13 @@
 JSC
 ==================
+
+
+#JSC IS CURRENTLY INACTIVE.
+###Use ScriptCraft for now instead.
+
+
+----
+
 A Bukkit mod that allows you to write plugins in Javascript.
 
 JSC is an enhanced version of Walter Higgins's [ScriptCraft](https://github.com/walterhiggins/ScriptCraft), redone by me.
